@@ -41,13 +41,15 @@ module.exports = function (app) {
           b = b.created_at ? new Date(b.created_at) : new Date(0);
           return b - a;
         });
+        
         let pEvents = events.map( e => e.getEventInfo(req.user._id));
         return Promise.all(pEvents);
       })
       .then((events) => {
+        console.log(events)
         res.json({res: 'success', data: events});
       })
-      .then((err) => {
+      .catch((err) => {
         res.json({res: 'failure', data: err });
       });
   });

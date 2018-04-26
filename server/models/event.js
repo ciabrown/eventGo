@@ -16,7 +16,7 @@ const eventSchema = new Schema({
     ref: 'User',
   },
   category: {
-    type: Schema.ObjectId,
+    type: String,
     required: true
   },
   date: {
@@ -30,11 +30,7 @@ const eventSchema = new Schema({
   description: {
     type: String,
     required: true,
-  },
-  likes: [{
-    type: Schema.ObjectId,
-    ref: 'User',
-  }],
+  }
   // ENDSTUB
 }, {
   timestamps: { createdAt: 'created_at' },
@@ -69,9 +65,7 @@ eventSchema.methods.getEventInfo = function (currentUserId) {
         date: this.date,
         location: this.location,
         description: this.description,
-        eventId: this._id,
-        numLikes: this.likes.length,
-        isLiked: (this.likes.indexOf(currentUserId) > -1) ? true : false,
+        eventId: this._id
       };
       return obj;
     });
@@ -95,13 +89,7 @@ eventSchema.statics.getNewsfeedEvents = function (userId) {
   // [t1, t2, t3 ... tn] but not [[t1], [t2,  t3] ... ].
   // Return a Promise!
   // STUB
-  return this.model('User').findOne({ _id: userId })
-    .then((user) => {
-      let posts = user.following.map(category => this.find({
-        category: category
-      }));
-      return Promise.all(posts);
-    })
+  return this.find()
     .then((posts) => {
       let flattened = [].concat.apply([], posts);
       return flattened;
@@ -126,24 +114,6 @@ eventSchema.statics.createEvent = function (currentUserId, date, category, locat
     likes: [],
   });
   return newEvent.save()
-    .then(saved => saved.getEventInfo(currentUserId));
-  // ENDSTUB
-};
-
-eventSchema.statics.likeEvent = function (currentUserId, eventId) {
-  // given a current user and a  event id, appropriately add/remove favorites on a given event.
-  // On completion of the  save return the event info (via getEventInfo), passing in the currentuser id
-  // Return a Promise!
-  // STUB
-  return this.findOne({ _id: eventId })
-    .then((event) => {
-      if (event.likes.indexOf(currentUserId) > -1) {
-        event.likes.remove(currentUserId);
-      } else {
-        event.likes.push(currentUserId);
-      }
-      return event.save();
-    })
     .then(saved => saved.getEventInfo(currentUserId));
   // ENDSTUB
 };
