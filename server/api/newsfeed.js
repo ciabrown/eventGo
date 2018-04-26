@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const isAuthenticated = require('../middlewares/isAuthenticated');
-const Tweet = require('../models/tweet');
+const Event = require('../models/event');
 const User = require('../models/user');
 
 
@@ -25,39 +25,22 @@ module.exports = function (app) {
     // 6. If there is an error just send back json in the format
     //    { res: 'failure', data: errorinstancehere }
 
-    // STUB
-    Tweet.getNewsfeedTweets(req.user._id)
-      .then((tweets) => {
-        tweets = tweets.sort((a, b) => {
+    Event.getNewsfeedEvents(req.user._id)
+      .then((events) => {
+        events = events.sort((a, b) => {
           a = a.created_at ? new Date(a.created_at) : new Date(0);
           b = b.created_at ? new Date(b.created_at) : new Date(0);
           return b - a;
         });
-        let pTweets = tweets.map(t => t.getTweetInfo(req.user._id));
-        return Promise.all(pTweets);
+        let pEvents = events.map(e => e.getEventInfo(req.user._id));
+        return Promise.all(pEvents);
       })
-      .then((tweets) => {
-        res.json({ res: 'success', data: tweets });
+      .then((events) => {
+        res.json({res: 'success', data: events});
       })
       .catch((err) => {
-        res.json({ res: 'failure', data: err });
-      });
-    // ENDSTUB
-  });
-
-  router.get('/newsfeed/discover-birds', function (req, res) {
-    User.find({}).then((users) => {
-      let result = [];
-      users.map((user) => {
-        if ((user._id.toString() !== req.user._id.toString()) && (user.followers.indexOf(req.user._id.toString()) === -1)) {
-          console.log(user._id.toString(), req.user._id);
-          result.push({ name: user.username, id: user._id });
-        }
-      });
-      res.json({ res: 'success', data: result });
-    }).catch((err) => {
-      res.json({ res: 'failure', data: err });
-    });
+        res.json({res: 'failure', data: err});
+      })
   });
 
   return router;
